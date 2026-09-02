@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useCartStore } from "@/store/cartStore";
 
 /* ──────────────────────────────────────────────
    Navigation data — edit links here
@@ -23,6 +24,8 @@ export default function Navbar() {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const totalItems = useCartStore((state) => state.totalItems);
+    const cartItemCount = totalItems();
 
     /* scroll‑aware background */
     useEffect(() => {
@@ -34,6 +37,8 @@ export default function Navbar() {
 
     /* close mobile menu on route change */
     useEffect(() => {
+        // The pathname is the external route signal that closes this controlled menu.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsOpen(false);
     }, [pathname]);
 
@@ -107,20 +112,73 @@ export default function Navbar() {
                     })}
                 </ul>
 
-                {/* ── Desktop CTA ───────────────────────── */}
-                <Link
-                    href="/menu"
-                    className="group relative hidden overflow-hidden rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-stone-950 shadow-md shadow-amber-900/30 transition-all duration-300 hover:shadow-lg hover:shadow-amber-700/40 hover:brightness-110 active:scale-95 lg:inline-flex"
-                >
-                    <span className="pointer-events-none absolute inset-0 -translate-x-full skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                    <span className="relative z-10">Order Now</span>
-                </Link>
+                {/* ── Desktop Cart + CTA ─────────────────── */}
+                <div className="hidden items-center gap-3 lg:flex">
+                    <Link
+                        href="/cart"
+                        aria-label="View cart"
+                        className="relative flex h-10 w-10 items-center justify-center rounded-full border border-stone-800/60 bg-stone-900/70 text-stone-300 backdrop-blur transition-colors duration-200 hover:border-amber-600/40 hover:text-amber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                    >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 8h12l-1 11H7L6 8Z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 8a3 3 0 0 1 6 0" />
+                        </svg>
+                        <AnimatePresence>
+                            {cartItemCount > 0 && (
+                                <motion.span
+                                    key={cartItemCount}
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    exit={{ scale: 0 }}
+                                    transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                                    aria-live="polite"
+                                    className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-1 text-[10px] font-bold text-stone-950"
+                                >
+                                    {cartItemCount}
+                                </motion.span>
+                            )}
+                        </AnimatePresence>
+                    </Link>
+                    <Link
+                        href="/menu"
+                        className="group relative overflow-hidden rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-stone-950 shadow-md shadow-amber-900/30 transition-all duration-300 hover:shadow-lg hover:shadow-amber-700/40 hover:brightness-110 active:scale-95"
+                    >
+                        <span className="pointer-events-none absolute inset-0 -translate-x-full skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                        <span className="relative z-10">Order Now</span>
+                    </Link>
+                </div>
 
-                {/* ── Mobile Hamburger ──────────────────── */}
-                <button
+                {/* ── Mobile Cart + Hamburger ───────────── */}
+                <div className="flex items-center gap-2 lg:hidden">
+                    <Link
+                        href="/cart"
+                        aria-label="View cart"
+                        className="relative z-50 flex h-10 w-10 items-center justify-center rounded-full border border-stone-800/60 bg-stone-900/70 text-stone-300 backdrop-blur transition-colors duration-200 hover:border-amber-600/40 hover:text-amber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                    >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 8h12l-1 11H7L6 8Z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 8a3 3 0 0 1 6 0" />
+                        </svg>
+                        <AnimatePresence>
+                            {cartItemCount > 0 && (
+                                <motion.span
+                                    key={cartItemCount}
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    exit={{ scale: 0 }}
+                                    transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                                    aria-live="polite"
+                                    className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-1 text-[10px] font-bold text-stone-950"
+                                >
+                                    {cartItemCount}
+                                </motion.span>
+                            )}
+                        </AnimatePresence>
+                    </Link>
+                    <button
                     type="button"
                     onClick={() => setIsOpen((prev) => !prev)}
-                    className="relative z-50 flex h-10 w-10 items-center justify-center rounded-full border border-stone-800/60 bg-stone-900/70 text-stone-300 backdrop-blur transition-colors duration-200 hover:border-amber-600/40 hover:text-amber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 lg:hidden"
+                    className="relative z-50 flex h-10 w-10 items-center justify-center rounded-full border border-stone-800/60 bg-stone-900/70 text-stone-300 backdrop-blur transition-colors duration-200 hover:border-amber-600/40 hover:text-amber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
                     aria-expanded={isOpen}
                     aria-controls="mobile-menu"
                     aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -153,7 +211,8 @@ export default function Navbar() {
                             className="block h-[2px] w-full rounded-full origin-center"
                         />
                     </div>
-                </button>
+                    </button>
+                </div>
             </nav>
 
             {/* ── Mobile Menu Overlay ─────────────────── */}

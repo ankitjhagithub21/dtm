@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import type { MenuItem } from "@/data/menuItems";
+import { useCartStore } from "@/store/cartStore";
 
 interface MenuCardProps {
   item: MenuItem;
@@ -20,6 +21,22 @@ const badgeColors: Record<string, string> = {
 
 export default function MenuCard({ item, index }: MenuCardProps) {
   const [imgError, setImgError] = useState(false);
+  const [wasAdded, setWasAdded] = useState(false);
+  const items = useCartStore((state) => state.items);
+  const addItem = useCartStore((state) => state.addItem);
+  const isInCart = items.some((cartItem) => cartItem.id === item.id);
+
+  const handleAddToCart = () => {
+    addItem({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      image: item.image,
+      category: item.category,
+    });
+    setWasAdded(true);
+    window.setTimeout(() => setWasAdded(false), 1000);
+  };
 
   return (
     <motion.article
@@ -88,16 +105,17 @@ export default function MenuCard({ item, index }: MenuCardProps) {
         {/* Price + CTA */}
         <div className="mt-4 flex items-center justify-between">
           <span className="text-xl font-extrabold tracking-tight text-amber-400">
-            {item.price}
+            ₹{item.price}
           </span>
 
           <button
             type="button"
+            onClick={handleAddToCart}
             className="relative overflow-hidden rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-2 text-xs font-bold uppercase tracking-wider text-stone-950 shadow-md shadow-amber-900/30 transition-all duration-300 hover:shadow-lg hover:shadow-amber-700/40 hover:brightness-110 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
           >
             {/* shine effect */}
             <span className="pointer-events-none absolute inset-0 -translate-x-full skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-            Add to Cart
+            {wasAdded ? "Added ✓" : isInCart ? "Add More" : "Add to Cart"}
           </button>
         </div>
       </div>
