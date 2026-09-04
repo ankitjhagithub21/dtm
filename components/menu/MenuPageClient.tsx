@@ -2,20 +2,24 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { menuItems, categories, MenuCategory } from "@/data/menuItems";
+import { categories, type MenuCategory, type MenuItem } from "@/data/menuItems";
 import HeroSection from "./HeroSection";
 import CategoryTabs from "./CategoryTabs";
 import MenuCard from "./MenuCard";
 
-export default function MenuPageClient() {
+interface MenuPageClientProps {
+  items: MenuItem[];
+}
+
+export default function MenuPageClient({ items }: MenuPageClientProps) {
   const [activeCategory, setActiveCategory] = useState<
     "All" | MenuCategory
   >("All");
 
   const filtered =
     activeCategory === "All"
-      ? menuItems
-      : menuItems.filter((item) => item.category === activeCategory);
+      ? items
+      : items.filter((item) => item.category === activeCategory);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-stone-950 via-stone-900 to-stone-950 text-stone-100">

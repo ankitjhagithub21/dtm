@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { menuItems } from "@/data/menuItems";
+import type { MenuItem } from "@/data/menuItems";
 import MenuCard from "@/components/menu/MenuCard";
 import SectionHeading from "./SectionHeading";
 
@@ -16,10 +16,14 @@ const featuredIds = [
   "soya-chaap",
 ];
 
-export default function FeaturedItems() {
+interface FeaturedItemsProps {
+  items: MenuItem[];
+}
+
+export default function FeaturedItems({ items }: FeaturedItemsProps) {
   const featured = featuredIds
-    .map((id) => menuItems.find((item) => item.id === id))
-    .filter(Boolean) as typeof menuItems;
+    .map((id) => items.find((item) => item.id === id))
+    .filter((item): item is MenuItem => item !== undefined);
 
   return (
     <section className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
