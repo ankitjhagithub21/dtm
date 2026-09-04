@@ -12,9 +12,7 @@ import { useCartStore } from "@/store/cartStore";
    ────────────────────────────────────────────── */
 const navLinks = [
     { label: "Home", href: "/" },
-    { label: "Menu", href: "/menu" },
-    { label: "About", href: "/about" },
-    { label: "Contact", href: "/contact" },
+    { label: "Menu", href: "/menu" }
 ];
 
 /* ──────────────────────────────────────────────
@@ -75,6 +73,7 @@ export default function Navbar() {
                         alt="Delhi Tandoori Momo Logo"
                         width={50}
                         height={50}
+                        loading="eager"
                     />
                 </Link>
 
