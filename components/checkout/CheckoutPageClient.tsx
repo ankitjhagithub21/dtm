@@ -6,7 +6,8 @@ import { motion } from "framer-motion";
 import { FormEvent, useEffect, useState } from "react";
 import { useCartStore } from "@/store/cartStore";
 import { useOrderStore } from "@/store/orderStore";
-import type { PaymentMethod } from "@/types/order";
+import { useAuthStore } from "@/store/authStore";
+import type { OrderDetails, PaymentMethod } from "@/types/order";
 
 interface CheckoutForm {
   customerName: string;
@@ -26,14 +27,33 @@ export default function CheckoutPageClient() {
   const subtotal = useCartStore((state) => state.subtotal);
   const clearCart = useCartStore((state) => state.clearCart);
   const placeOrder = useOrderStore((state) => state.placeOrder);
+  const user = useAuthStore((state) => state.user);
+  const profile = useAuthStore((state) => state.profile);
+  const fetchProfile = useAuthStore((state) => state.fetchProfile);
   const [form, setForm] = useState<CheckoutForm>({ customerName: "", phone: "", address: "", landmark: "", specialInstructions: "" });
   const [errors, setErrors] = useState<FormErrors>({});
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState("");
 
   const orderSubtotal = subtotal();
   const deliveryFee = orderSubtotal >= 300 ? 0 : 30;
   const total = orderSubtotal + deliveryFee;
+
+  useEffect(() => {
+    void fetchProfile();
+  }, [fetchProfile]);
+
+  useEffect(() => {
+    if (!user) return;
+    // Synchronize the form's editable defaults with an authenticated profile.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setForm((current) => ({
+      ...current,
+      customerName: current.customerName || profile?.fullName || user.user_metadata.full_name || "",
+      phone: current.phone || (profile?.phone ?? user.phone ?? "").replace(/^\+91/, ""),
+    }));
+  }, [profile?.fullName, profile?.phone, user]);
 
   useEffect(() => {
     if (items.length === 0) router.replace("/menu");
@@ -53,12 +73,13 @@ export default function CheckoutPageClient() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!validate() || isSubmitting) return;
 
     setIsSubmitting(true);
-    const order = placeOrder({
+    setSubmissionError("");
+    const orderData = {
       customerName: form.customerName.trim(),
       phone: form.phone.trim(),
       address: form.address.trim(),
@@ -69,9 +90,29 @@ export default function CheckoutPageClient() {
       subtotal: orderSubtotal,
       deliveryFee,
       total,
-    });
+      userId: user?.id ?? null,
+    };
+    const localOrder = placeOrder(orderData);
     clearCart();
-    router.push(`/order-confirmation/${order.orderId}`);
+
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderData),
+      });
+      const payload: { success: boolean; order?: OrderDetails; error?: string } = await response.json();
+
+      if (!response.ok || !payload.success || !payload.order) {
+        throw new Error(payload.error ?? "Unable to save your order online.");
+      }
+
+      router.push(`/order-confirmation/${payload.order.orderId}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to save your order online.";
+      setSubmissionError(`${message} Your order has been saved on this device.`);
+      window.setTimeout(() => router.push(`/order-confirmation/${localOrder.orderId}`), 1200);
+    }
   };
 
   if (items.length === 0) return null;
@@ -112,6 +153,7 @@ export default function CheckoutPageClient() {
             <div className="my-5 h-px bg-stone-800" />
             <div className="space-y-3 text-sm"><div className="flex justify-between text-stone-400"><span>Subtotal</span><span className="text-stone-200">₹{orderSubtotal}</span></div><div className="flex justify-between text-stone-400"><span>Delivery</span><span className="text-stone-200">{deliveryFee === 0 ? "Free" : "₹30"}</span></div></div>
             <div className="my-5 h-px bg-stone-800" /><div className="flex items-center justify-between"><span className="font-bold text-stone-100">Total</span><span className="text-xl font-extrabold text-amber-400">₹{total}</span></div>
+            {submissionError && <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-center text-xs text-amber-200" role="alert">{submissionError}</p>}
             <button type="submit" form="checkout-form" disabled={isSubmitting} className="group relative mt-6 flex w-full items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-8 py-3.5 text-sm font-bold uppercase tracking-wider text-stone-950 shadow-lg shadow-amber-900/30 transition-all duration-300 hover:brightness-110 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 disabled:cursor-not-allowed disabled:opacity-70"><span className="pointer-events-none absolute inset-0 -translate-x-full skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 group-hover:translate-x-full" />{isSubmitting ? <span className="relative z-10 flex items-center gap-2"><span className="h-4 w-4 animate-spin rounded-full border-2 border-stone-950/30 border-t-stone-950" />Placing Order</span> : <span className="relative z-10">Place Order</span>}</button>
             <Link href="/cart" className="mt-4 block text-center text-sm text-stone-400 transition-colors hover:text-amber-300">Back to cart</Link>
           </motion.aside>

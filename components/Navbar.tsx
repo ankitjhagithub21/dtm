@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useCartStore } from "@/store/cartStore";
+import { useAuthStore } from "@/store/authStore";
+import { createClient } from "@/lib/supabase/client";
 
 /* ──────────────────────────────────────────────
    Navigation data — edit links here
@@ -20,10 +22,17 @@ const navLinks = [
    ────────────────────────────────────────────── */
 export default function Navbar() {
     const pathname = usePathname();
+    const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const totalItems = useCartStore((state) => state.totalItems);
     const cartItemCount = totalItems();
+    const user = useAuthStore((state) => state.user);
+    const profile = useAuthStore((state) => state.profile);
+    const fetchProfile = useAuthStore((state) => state.fetchProfile);
+    const clearSession = useAuthStore((state) => state.clearSession);
+    const [isAccountOpen, setIsAccountOpen] = useState(false);
+    const displayName = profile?.fullName || user?.user_metadata.full_name || user?.email || "Guest";
 
     /* scroll‑aware background */
     useEffect(() => {
@@ -32,6 +41,18 @@ export default function Navbar() {
         onScroll();
         return () => window.removeEventListener("scroll", onScroll);
     }, []);
+
+    useEffect(() => {
+        void fetchProfile();
+    }, [fetchProfile]);
+
+    const handleLogout = async () => {
+        await createClient().auth.signOut();
+        clearSession();
+        setIsAccountOpen(false);
+        setIsOpen(false);
+        router.push("/");
+    };
 
     /* close mobile menu on route change */
     useEffect(() => {
@@ -113,6 +134,16 @@ export default function Navbar() {
 
                 {/* ── Desktop Cart + CTA ─────────────────── */}
                 <div className="hidden items-center gap-3 lg:flex">
+                    {user ? (
+                        <div className="relative">
+                            <button type="button" onClick={() => setIsAccountOpen((current) => !current)} aria-expanded={isAccountOpen} aria-label="Open account menu" className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/20 text-sm font-bold text-amber-400 transition-colors hover:bg-amber-500/30">
+                                {displayName.charAt(0).toUpperCase()}
+                            </button>
+                            <AnimatePresence>
+                                {isAccountOpen && <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="absolute right-0 mt-3 w-52 rounded-2xl border border-stone-800/60 bg-stone-900/95 p-3 shadow-xl shadow-black/30 backdrop-blur"><p className="truncate px-3 py-2 text-sm font-semibold text-stone-100">{displayName}</p><div className="my-2 h-px bg-stone-800" /><Link href="/my-orders" onClick={() => setIsAccountOpen(false)} className="block rounded-xl px-3 py-2 text-sm text-stone-400 hover:bg-stone-800 hover:text-amber-300">My Orders</Link><button type="button" onClick={handleLogout} className="w-full rounded-xl px-3 py-2 text-left text-sm text-stone-400 hover:bg-stone-800 hover:text-red-400">Logout</button></motion.div>}
+                            </AnimatePresence>
+                        </div>
+                    ) : <Link href="/login" className="text-sm font-semibold text-amber-300 transition-colors hover:text-amber-200">Login</Link>}
                     <Link
                         href="/cart"
                         aria-label="View cart"
@@ -271,6 +302,8 @@ export default function Navbar() {
                                         </motion.li>
                                     );
                                 })}
+
+                                {user ? <motion.li initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.08 * navLinks.length }} className="w-full max-w-xs"><p className="px-6 py-2 text-center text-sm font-semibold text-amber-300">{displayName}</p><Link href="/my-orders" onClick={() => setIsOpen(false)} className="flex items-center justify-center rounded-2xl px-6 py-3 text-center text-lg font-semibold text-stone-300 hover:bg-stone-900/60 hover:text-amber-300">My Orders</Link><button type="button" onClick={handleLogout} className="mt-1 flex w-full items-center justify-center rounded-2xl px-6 py-3 text-center text-lg font-semibold text-stone-300 hover:bg-stone-900/60 hover:text-red-400">Logout</button></motion.li> : <motion.li initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.08 * navLinks.length }} className="w-full max-w-xs"><Link href="/login" onClick={() => setIsOpen(false)} className="flex items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/10 px-6 py-3 text-center text-lg font-semibold text-amber-300">Login</Link></motion.li>}
 
                                 {/* mobile CTA */}
                                 <motion.li

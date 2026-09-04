@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { useOrderStore } from "@/store/orderStore";
+import type { OrderDetails } from "@/types/order";
 
 interface OrderConfirmationClientProps {
   orderId: string;
@@ -12,8 +14,38 @@ const cardTransition = (delay: number) => ({ duration: 0.45, delay, ease: "easeO
 
 export default function OrderConfirmationClient({ orderId }: OrderConfirmationClientProps) {
   const currentOrder = useOrderStore((state) => state.currentOrder);
+  const [apiOrder, setApiOrder] = useState<OrderDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!currentOrder || currentOrder.orderId !== orderId) {
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadOrder = async () => {
+      try {
+        const response = await fetch(`/api/orders/${encodeURIComponent(orderId)}`);
+        if (!response.ok) return;
+
+        const payload: { order?: OrderDetails } = await response.json();
+        if (payload.order && isMounted) setApiOrder(payload.order);
+      } catch {
+        // The persisted Zustand order is used if the API is unavailable.
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    void loadOrder();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [orderId]);
+
+  if (isLoading) return null;
+
+  const order = apiOrder ?? (currentOrder?.orderId === orderId ? currentOrder : null);
+
+  if (!order) {
     return (
       <main className="flex min-h-screen items-center bg-gradient-to-b from-stone-950 via-stone-900 to-stone-950 px-4 pt-20 text-stone-100">
         <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="mx-auto w-full max-w-lg rounded-2xl border border-stone-800/60 bg-stone-900/70 px-6 py-14 text-center shadow-lg shadow-black/20 backdrop-blur">
@@ -25,8 +57,6 @@ export default function OrderConfirmationClient({ orderId }: OrderConfirmationCl
       </main>
     );
   }
-
-  const order = currentOrder;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-stone-950 via-stone-900 to-stone-950 pb-16 pt-28 text-stone-100">
