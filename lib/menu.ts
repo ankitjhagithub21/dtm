@@ -1,6 +1,6 @@
 import { menuItems } from "@/data/menuItems";
 import { createClient } from "@/lib/supabase/server";
-import { toMenuItem } from "@/types/database";
+import { toMenuItemForMenu } from "@/types/database";
 import type { MenuItem } from "@/data/menuItems";
 
 export async function getMenuItems(): Promise<MenuItem[]> {
@@ -22,7 +22,7 @@ export async function getMenuItems(): Promise<MenuItem[]> {
       return menuItems;
     }
 
-    return data.map(toMenuItem);
+    return data.map(toMenuItemForMenu);
   } catch (error) {
     console.error("Unable to load menu items from Supabase:", error);
     return menuItems;

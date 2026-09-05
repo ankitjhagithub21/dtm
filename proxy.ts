@@ -17,6 +17,9 @@ export async function proxy(request: NextRequest) {
     return redirectResponse;
   }
 
+  // Note: The admin role check is handled in the server component (app/admin/page.tsx)
+  // since we cannot query the database in middleware for role verification
+
   return response;
 }
 

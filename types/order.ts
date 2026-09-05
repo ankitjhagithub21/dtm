@@ -8,9 +8,10 @@ export interface OrderItem {
 }
 
 export type PaymentMethod = "cod" | "online";
-export type OrderStatus = "confirmed";
+export type OrderStatus = "confirmed" | "preparing" | "out_for_delivery" | "delivered" | "cancelled";
 
 export interface OrderDetails {
+  dbId?: string; // Database UUID for admin operations
   orderId: string;
   customerName: string;
   phone: string;

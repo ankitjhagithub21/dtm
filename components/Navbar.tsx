@@ -9,6 +9,7 @@ import { useCartStore } from "@/store/cartStore";
 import { useAuthStore } from "@/store/authStore";
 import { createClient } from "@/lib/supabase/client";
 
+
 /* ──────────────────────────────────────────────
    Navigation data — edit links here
    ────────────────────────────────────────────── */
@@ -75,11 +76,17 @@ export default function Navbar() {
         return pathname.startsWith(href);
     };
 
+    // ── Hide Navbar on Admin routes ──────────────────────
+    if (pathname.startsWith("/admin")) {
+        return null;
+    }
+
+
     return (
         <header
             className={`fixed left-0 right-0 top-0 z-50 transition-all duration-500 ${scrolled
-                    ? "border-b border-stone-800/50 bg-stone-950/90 shadow-lg shadow-black/20 backdrop-blur-xl"
-                    : "bg-transparent"
+                ? "border-b border-stone-800/50 bg-stone-950/90 shadow-lg shadow-black/20 backdrop-blur-xl"
+                : "bg-transparent"
                 }`}
         >
             <nav
@@ -108,8 +115,8 @@ export default function Navbar() {
                                 <Link
                                     href={link.href}
                                     className={`relative px-4 py-2 text-sm font-medium tracking-wide transition-colors duration-200 ${active
-                                            ? "text-amber-400"
-                                            : "text-stone-400 hover:text-amber-300"
+                                        ? "text-amber-400"
+                                        : "text-stone-400 hover:text-amber-300"
                                         }`}
                                 >
                                     {link.label}
@@ -206,41 +213,41 @@ export default function Navbar() {
                         </AnimatePresence>
                     </Link>
                     <button
-                    type="button"
-                    onClick={() => setIsOpen((prev) => !prev)}
-                    className="relative z-50 flex h-10 w-10 items-center justify-center rounded-full border border-stone-800/60 bg-stone-900/70 text-stone-300 backdrop-blur transition-colors duration-200 hover:border-amber-600/40 hover:text-amber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
-                    aria-expanded={isOpen}
-                    aria-controls="mobile-menu"
-                    aria-label={isOpen ? "Close menu" : "Open menu"}
-                >
-                    <div className="flex h-4 w-5 flex-col items-center justify-center gap-[5px]">
-                        {/* top bar */}
-                        <motion.span
-                            animate={
-                                isOpen
-                                    ? { rotate: 45, y: 7, backgroundColor: "#fbbf24" }
-                                    : { rotate: 0, y: 0, backgroundColor: "#d6d3d1" }
-                            }
-                            transition={{ duration: 0.25 }}
-                            className="block h-[2px] w-full rounded-full origin-center"
-                        />
-                        {/* middle bar */}
-                        <motion.span
-                            animate={isOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
-                            transition={{ duration: 0.2 }}
-                            className="block h-[2px] w-full rounded-full bg-stone-300"
-                        />
-                        {/* bottom bar */}
-                        <motion.span
-                            animate={
-                                isOpen
-                                    ? { rotate: -45, y: -7, backgroundColor: "#fbbf24" }
-                                    : { rotate: 0, y: 0, backgroundColor: "#d6d3d1" }
-                            }
-                            transition={{ duration: 0.25 }}
-                            className="block h-[2px] w-full rounded-full origin-center"
-                        />
-                    </div>
+                        type="button"
+                        onClick={() => setIsOpen((prev) => !prev)}
+                        className="relative z-50 flex h-10 w-10 items-center justify-center rounded-full border border-stone-800/60 bg-stone-900/70 text-stone-300 backdrop-blur transition-colors duration-200 hover:border-amber-600/40 hover:text-amber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                        aria-expanded={isOpen}
+                        aria-controls="mobile-menu"
+                        aria-label={isOpen ? "Close menu" : "Open menu"}
+                    >
+                        <div className="flex h-4 w-5 flex-col items-center justify-center gap-[5px]">
+                            {/* top bar */}
+                            <motion.span
+                                animate={
+                                    isOpen
+                                        ? { rotate: 45, y: 7, backgroundColor: "#fbbf24" }
+                                        : { rotate: 0, y: 0, backgroundColor: "#d6d3d1" }
+                                }
+                                transition={{ duration: 0.25 }}
+                                className="block h-[2px] w-full rounded-full origin-center"
+                            />
+                            {/* middle bar */}
+                            <motion.span
+                                animate={isOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
+                                transition={{ duration: 0.2 }}
+                                className="block h-[2px] w-full rounded-full bg-stone-300"
+                            />
+                            {/* bottom bar */}
+                            <motion.span
+                                animate={
+                                    isOpen
+                                        ? { rotate: -45, y: -7, backgroundColor: "#fbbf24" }
+                                        : { rotate: 0, y: 0, backgroundColor: "#d6d3d1" }
+                                }
+                                transition={{ duration: 0.25 }}
+                                className="block h-[2px] w-full rounded-full origin-center"
+                            />
+                        </div>
                     </button>
                 </div>
             </nav>
@@ -293,8 +300,8 @@ export default function Navbar() {
                                                 href={link.href}
                                                 onClick={() => setIsOpen(false)}
                                                 className={`flex items-center justify-center rounded-2xl px-6 py-4 text-center text-lg font-semibold tracking-wide transition-all duration-200 ${active
-                                                        ? "border border-amber-500/30 bg-amber-500/10 text-amber-400"
-                                                        : "text-stone-300 hover:bg-stone-900/60 hover:text-amber-300"
+                                                    ? "border border-amber-500/30 bg-amber-500/10 text-amber-400"
+                                                    : "text-stone-300 hover:bg-stone-900/60 hover:text-amber-300"
                                                     }`}
                                             >
                                                 {link.label}

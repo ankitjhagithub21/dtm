@@ -2,6 +2,7 @@ export type MenuCategory = "Momos" | "Sandwiches" | "Burgers" | "Soya Chaap";
 
 export interface MenuItem {
   id: string;
+  dbId?: string; // Database UUID for admin operations
   name: string;
   description: string;
   price: number;
@@ -9,6 +10,7 @@ export interface MenuItem {
   image: string;
   badge?: string; // e.g. "Bestseller", "New", "Spicy"
   isVeg: boolean;
+  isAvailable?: boolean; // For admin dashboard
 }
 
 export const categories: MenuCategory[] = [

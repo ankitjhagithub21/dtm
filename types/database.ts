@@ -19,6 +19,21 @@ export interface MenuItemRow {
 export function toMenuItem(row: MenuItemRow): MenuItem {
   return {
     id: row.slug,
+    dbId: row.id,
+    name: row.name,
+    description: row.description,
+    price: row.price,
+    category: row.category,
+    image: row.image_url,
+    badge: row.badge ?? undefined,
+    isVeg: row.is_veg,
+    isAvailable: row.is_available,
+  };
+}
+
+export function toMenuItemForMenu(row: MenuItemRow): MenuItem {
+  return {
+    id: row.slug,
     name: row.name,
     description: row.description,
     price: row.price,
@@ -67,6 +82,7 @@ export function toOrderDetails(orderRow: OrderRow, orderItemRows: OrderItemRow[]
   }));
 
   return {
+    dbId: orderRow.id,
     orderId: orderRow.order_number,
     customerName: orderRow.customer_name,
     phone: orderRow.phone,
