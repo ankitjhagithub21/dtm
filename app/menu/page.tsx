@@ -10,6 +10,5 @@ export const metadata: Metadata = {
 
 export default async function MenuPage() {
   const items = await getMenuItems();
-
   return <MenuPageClient items={items} />;
 }
